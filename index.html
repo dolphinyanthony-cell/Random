@@ -129,7 +129,56 @@ function movePlayer() {
 }
 
 // Enemy
+function // Enemy AI (ADVANCED)
 function moveEnemy() {
+    let dist = player.x - enemy.x;
+
+    // Stay in fighting range
+    if (Math.abs(dist) > 120) {
+        enemy.x += dist > 0 ? 3 : -3; // approach
+    } else if (Math.abs(dist) < 70) {
+        enemy.x += dist > 0 ? -2 : 2; // back up if too close
+    }
+
+    // Random dodge movement
+    if (Math.random() < 0.01) {
+        enemy.x += (Math.random() < 0.5 ? -40 : 40);
+    }
+
+    // Block sometimes
+    enemy.blocking = Math.random() < 0.02;
+
+    // Counter attack if player is attacking
+    if ((player.punching || player.kicking) && Math.random() < 0.3 && !enemy.cooldown) {
+        enemy.cooldown = true;
+        enemy.punching = true;
+
+        attack(enemy, player, 12, 80);
+
+        setTimeout(()=>enemy.punching=false,150);
+        setTimeout(()=>enemy.cooldown=false,300);
+        return;
+    }
+
+    // Normal attack logic
+    if (!enemy.cooldown && Math.random() < 0.04) {
+        enemy.cooldown = true;
+
+        if (Math.abs(dist) < 80) {
+            // Close = punch
+            enemy.punching = true;
+            attack(enemy, player, 12, 80);
+            setTimeout(()=>enemy.punching=false,150);
+        } else {
+            // Far = kick
+            enemy.kicking = true;
+            attack(enemy, player, 20, 110);
+            setTimeout(()=>enemy.kicking=false,200);
+        }
+
+        setTimeout(()=>enemy.cooldown=false,400);
+    }
+} {
     if (enemy.x > player.x) enemy.x -= 2;
     if (enemy.x < player.x) enemy.x += 2;
 
