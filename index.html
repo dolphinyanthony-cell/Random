@@ -35,7 +35,8 @@ resize();
 
 let player, enemy, gameOver;
 
-const COOLDOWN = 1257.9; // 1.2579 seconds
+const PLAYER_COOLDOWN = 1257.9;
+const ENEMY_COOLDOWN = 200;
 
 function resetGame() {
     player = { x:200, y:c.height - 150, hp:100, punching:false, kicking:false, cooldown:false };
@@ -116,7 +117,7 @@ function movePlayer() {
         attack(player, enemy, 10, 70);
 
         setTimeout(()=>player.punching=false,150);
-        setTimeout(()=>player.cooldown=false,COOLDOWN);
+        setTimeout(()=>player.cooldown=false,PLAYER_COOLDOWN);
     }
 
     if (keys["k"] && !player.cooldown) {
@@ -125,11 +126,11 @@ function movePlayer() {
         attack(player, enemy, 20, 95);
 
         setTimeout(()=>player.kicking=false,200);
-        setTimeout(()=>player.cooldown=false,COOLDOWN);
+        setTimeout(()=>player.cooldown=false,PLAYER_COOLDOWN);
     }
 }
 
-// Enemy
+// Enemy (FAST ATTACK BOT)
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
@@ -145,33 +146,20 @@ function moveEnemy() {
 
     enemy.blocking = Math.random() < 0.02;
 
-    if ((player.punching || player.kicking) && Math.random() < 0.2 && !enemy.cooldown) {
-        enemy.cooldown = true;
-
-        setTimeout(() => {
-            enemy.punching = true;
-            attack(enemy, player, 10, 75);
-            setTimeout(()=>enemy.punching=false,150);
-        }, 150);
-
-        setTimeout(()=>enemy.cooldown=false,COOLDOWN);
-        return;
-    }
-
-    if (!enemy.cooldown && Math.random() < 0.035) {
+    if (!enemy.cooldown && Math.random() < 0.06) {
         enemy.cooldown = true;
 
         if (Math.abs(dist) < 80) {
             enemy.punching = true;
-            attack(enemy, player, 10, 75);
-            setTimeout(()=>enemy.punching=false,150);
+            attack(enemy, player, 9, 75);
+            setTimeout(()=>enemy.punching=false,120);
         } else {
             enemy.kicking = true;
-            attack(enemy, player, 16, 100);
-            setTimeout(()=>enemy.kicking=false,200);
+            attack(enemy, player, 14, 100);
+            setTimeout(()=>enemy.kicking=false,160);
         }
 
-        setTimeout(()=>enemy.cooldown=false,COOLDOWN);
+        setTimeout(()=>enemy.cooldown=false,ENEMY_COOLDOWN);
     }
 }
 
