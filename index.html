@@ -103,7 +103,7 @@ function drawFighter(f, color, flip=false) {
     ctx.restore();
 }
 
-// Attack (with blocking)
+// Attack
 function attack(a, b, dmg, range) {
     if (Math.abs(a.x - b.x) < range) {
         if (b.blocking) dmg *= 0.3;
@@ -122,39 +122,35 @@ function movePlayer() {
         attack(player, enemy, 10, 70);
 
         setTimeout(()=>player.punching=false,150);
-        setTimeout(()=>player.cooldown=false,300);
+        setTimeout(()=>player.cooldown=false,500);
     }
 
     if (keys["k"] && !player.cooldown) {
         player.kicking = true;
         player.cooldown = true;
-        attack(player, enemy, 20, 95); // slight player advantage
+        attack(player, enemy, 20, 95);
 
         setTimeout(()=>player.kicking=false,200);
-        setTimeout(()=>player.cooldown=false,400);
+        setTimeout(()=>player.cooldown=false,500);
     }
 }
 
-// 🔥 BALANCED ENEMY (WINNABLE)
+// Enemy (balanced + same cooldown)
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
-    // Movement (slower + fair)
     if (Math.abs(dist) > 130) {
         enemy.x += dist > 0 ? 2 : -2;
     } else if (Math.abs(dist) < 60) {
         enemy.x += dist > 0 ? -1.5 : 1.5;
     }
 
-    // Occasional dodge
     if (Math.random() < 0.005) {
         enemy.x += (Math.random() < 0.5 ? -30 : 30);
     }
 
-    // Less blocking
     enemy.blocking = Math.random() < 0.01;
 
-    // Rare counter
     if ((player.punching || player.kicking) && Math.random() < 0.15 && !enemy.cooldown) {
         enemy.cooldown = true;
 
@@ -165,11 +161,10 @@ function moveEnemy() {
             setTimeout(()=>enemy.punching=false,150);
         }, 200);
 
-        setTimeout(()=>enemy.cooldown=false,400);
+        setTimeout(()=>enemy.cooldown=false,500);
         return;
     }
 
-    // Normal attacks
     if (!enemy.cooldown && Math.random() < 0.025) {
         enemy.cooldown = true;
 
