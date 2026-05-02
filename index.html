@@ -103,7 +103,7 @@ function drawFighter(f, color, flip=false) {
     ctx.restore();
 }
 
-// Attack with blocking
+// Attack (with blocking)
 function attack(a, b, dmg, range) {
     if (Math.abs(a.x - b.x) < range) {
         if (b.blocking) dmg *= 0.3;
@@ -128,58 +128,62 @@ function movePlayer() {
     if (keys["k"] && !player.cooldown) {
         player.kicking = true;
         player.cooldown = true;
-        attack(player, enemy, 18, 90);
+        attack(player, enemy, 20, 95); // slight player advantage
 
         setTimeout(()=>player.kicking=false,200);
         setTimeout(()=>player.cooldown=false,400);
     }
 }
 
-// 🔥 ADVANCED ENEMY AI
+// 🔥 BALANCED ENEMY (WINNABLE)
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
-    // Smart spacing
-    if (Math.abs(dist) > 120) {
-        enemy.x += dist > 0 ? 3 : -3;
-    } else if (Math.abs(dist) < 70) {
-        enemy.x += dist > 0 ? -2 : 2;
+    // Movement (slower + fair)
+    if (Math.abs(dist) > 130) {
+        enemy.x += dist > 0 ? 2 : -2;
+    } else if (Math.abs(dist) < 60) {
+        enemy.x += dist > 0 ? -1.5 : 1.5;
     }
 
-    // Dodge
-    if (Math.random() < 0.01) {
-        enemy.x += (Math.random() < 0.5 ? -40 : 40);
+    // Occasional dodge
+    if (Math.random() < 0.005) {
+        enemy.x += (Math.random() < 0.5 ? -30 : 30);
     }
 
-    // Block
-    enemy.blocking = Math.random() < 0.02;
+    // Less blocking
+    enemy.blocking = Math.random() < 0.01;
 
-    // Counter
-    if ((player.punching || player.kicking) && Math.random() < 0.3 && !enemy.cooldown) {
+    // Rare counter
+    if ((player.punching || player.kicking) && Math.random() < 0.15 && !enemy.cooldown) {
         enemy.cooldown = true;
-        enemy.punching = true;
-        attack(enemy, player, 12, 80);
 
-        setTimeout(()=>enemy.punching=false,150);
-        setTimeout(()=>enemy.cooldown=false,300);
+        setTimeout(() => {
+            enemy.punching = true;
+            attack(enemy, player, 8, 70);
+
+            setTimeout(()=>enemy.punching=false,150);
+        }, 200);
+
+        setTimeout(()=>enemy.cooldown=false,400);
         return;
     }
 
-    // Attack logic
-    if (!enemy.cooldown && Math.random() < 0.04) {
+    // Normal attacks
+    if (!enemy.cooldown && Math.random() < 0.025) {
         enemy.cooldown = true;
 
-        if (Math.abs(dist) < 80) {
+        if (Math.abs(dist) < 75) {
             enemy.punching = true;
-            attack(enemy, player, 12, 80);
+            attack(enemy, player, 8, 70);
             setTimeout(()=>enemy.punching=false,150);
         } else {
             enemy.kicking = true;
-            attack(enemy, player, 20, 110);
+            attack(enemy, player, 14, 95);
             setTimeout(()=>enemy.kicking=false,200);
         }
 
-        setTimeout(()=>enemy.cooldown=false,400);
+        setTimeout(()=>enemy.cooldown=false,500);
     }
 }
 
