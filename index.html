@@ -26,7 +26,7 @@ canvas { display:block; }
 const c = document.getElementById("game");
 const ctx = c.getContext("2d");
 
-// FULLSCREEN CANVAS
+// Fullscreen
 function resize() {
     c.width = window.innerWidth;
     c.height = window.innerHeight;
@@ -94,12 +94,19 @@ function drawFighter(f, color, flip=false) {
     ctx.lineTo(f.x + (f.kicking ? 60 : 40), f.y + (f.kicking ? 10 : 40));
     ctx.stroke();
 
+    // Block indicator
+    if (f.blocking) {
+        ctx.fillStyle = "cyan";
+        ctx.fillRect(f.x, f.y - 60, 40, 5);
+    }
+
     ctx.restore();
 }
 
-// Attack
+// Attack with blocking
 function attack(a, b, dmg, range) {
     if (Math.abs(a.x - b.x) < range) {
+        if (b.blocking) dmg *= 0.3;
         b.hp -= dmg;
     }
 }
@@ -128,31 +135,29 @@ function movePlayer() {
     }
 }
 
-// Enemy
-function moveEnemy()// Enemy AI (ADVANCED)
+// 🔥 ADVANCED ENEMY AI
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
-    // Stay in fighting range
+    // Smart spacing
     if (Math.abs(dist) > 120) {
-        enemy.x += dist > 0 ? 3 : -3; // approach
+        enemy.x += dist > 0 ? 3 : -3;
     } else if (Math.abs(dist) < 70) {
-        enemy.x += dist > 0 ? -2 : 2; // back up if too close
+        enemy.x += dist > 0 ? -2 : 2;
     }
 
-    // Random dodge movement
+    // Dodge
     if (Math.random() < 0.01) {
         enemy.x += (Math.random() < 0.5 ? -40 : 40);
     }
 
-    // Block sometimes
+    // Block
     enemy.blocking = Math.random() < 0.02;
 
-    // Counter attack if player is attacking
+    // Counter
     if ((player.punching || player.kicking) && Math.random() < 0.3 && !enemy.cooldown) {
         enemy.cooldown = true;
         enemy.punching = true;
-
         attack(enemy, player, 12, 80);
 
         setTimeout(()=>enemy.punching=false,150);
@@ -160,42 +165,21 @@ function moveEnemy() {
         return;
     }
 
-    // Normal attack logic
+    // Attack logic
     if (!enemy.cooldown && Math.random() < 0.04) {
         enemy.cooldown = true;
 
         if (Math.abs(dist) < 80) {
-            // Close = punch
             enemy.punching = true;
             attack(enemy, player, 12, 80);
             setTimeout(()=>enemy.punching=false,150);
         } else {
-            // Far = kick
             enemy.kicking = true;
             attack(enemy, player, 20, 110);
             setTimeout(()=>enemy.kicking=false,200);
         }
 
         setTimeout(()=>enemy.cooldown=false,400);
-    }
-} {
-    if (enemy.x > player.x) enemy.x -= 2;
-    if (enemy.x < player.x) enemy.x += 2;
-
-    if (Math.random() < 0.02 && !enemy.cooldown) {
-        enemy.cooldown = true;
-
-        if (Math.random() < 0.5) {
-            enemy.punching = true;
-            attack(enemy, player, 10, 70);
-            setTimeout(()=>enemy.punching=false,150);
-        } else {
-            enemy.kicking = true;
-            attack(enemy, player, 18, 90);
-            setTimeout(()=>enemy.kicking=false,200);
-        }
-
-        setTimeout(()=>enemy.cooldown=false,500);
     }
 }
 
