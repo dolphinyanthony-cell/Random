@@ -36,7 +36,7 @@ resize();
 let player, enemy, gameOver;
 
 const PLAYER_COOLDOWN = 1257.9;
-const ENEMY_COOLDOWN = 200;
+const ENEMY_COOLDOWN = 800;
 
 function resetGame() {
     player = { x:200, y:c.height - 150, hp:100, punching:false, kicking:false, cooldown:false };
@@ -69,7 +69,6 @@ function drawFighter(f, color, flip=false) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
 
-    // Arms
     ctx.beginPath();
     ctx.moveTo(f.x + 10, f.y - 10);
     ctx.lineTo(f.x - (f.punching ? 35 : 10), f.y + (f.punching ? -20 : 10));
@@ -80,7 +79,6 @@ function drawFighter(f, color, flip=false) {
     ctx.lineTo(f.x + (f.punching ? 65 : 40), f.y + (f.punching ? -20 : 10));
     ctx.stroke();
 
-    // Legs
     ctx.beginPath();
     ctx.moveTo(f.x + 15, f.y + 15);
     ctx.lineTo(f.x + (f.kicking ? -20 : 0), f.y + (f.kicking ? 10 : 40));
@@ -130,7 +128,7 @@ function movePlayer() {
     }
 }
 
-// Enemy (FAST ATTACK BOT)
+// Enemy (0.8s cooldown)
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
@@ -146,17 +144,17 @@ function moveEnemy() {
 
     enemy.blocking = Math.random() < 0.02;
 
-    if (!enemy.cooldown && Math.random() < 0.06) {
+    if (!enemy.cooldown && Math.random() < 0.05) {
         enemy.cooldown = true;
 
         if (Math.abs(dist) < 80) {
             enemy.punching = true;
-            attack(enemy, player, 9, 75);
-            setTimeout(()=>enemy.punching=false,120);
+            attack(enemy, player, 10, 75);
+            setTimeout(()=>enemy.punching=false,150);
         } else {
             enemy.kicking = true;
-            attack(enemy, player, 14, 100);
-            setTimeout(()=>enemy.kicking=false,160);
+            attack(enemy, player, 16, 100);
+            setTimeout(()=>enemy.kicking=false,200);
         }
 
         setTimeout(()=>enemy.cooldown=false,ENEMY_COOLDOWN);
