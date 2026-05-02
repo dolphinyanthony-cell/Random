@@ -4,12 +4,21 @@
 <meta charset="UTF-8">
 <title>Kickboxing Game</title>
 <style>
-body { margin:0; background:black; }
+body { margin:0; background:black; color:white; font-family:Arial; }
 canvas { display:block; margin:auto; background:#222; }
+#resetBtn {
+    position:absolute;
+    top:10px;
+    left:10px;
+    padding:10px 20px;
+    font-size:16px;
+    cursor:pointer;
+}
 </style>
 </head>
 <body>
 
+<button id="resetBtn">RESET</button>
 <canvas id="game" width="900" height="500"></canvas>
 
 <script>
@@ -17,15 +26,24 @@ const c = document.getElementById("game");
 const ctx = c.getContext("2d");
 
 // Fighters
-let player = { x:150, y:300, hp:100, attacking:false };
-let enemy  = { x:650, y:300, hp:100, attacking:false };
+let player, enemy;
+
+// Reset function
+function resetGame() {
+    player = { x:150, y:300, hp:100, attacking:false, cooldown:false };
+    enemy  = { x:650, y:300, hp:100, attacking:false, cooldown:false };
+}
+resetGame();
+
+// Button
+document.getElementById("resetBtn").onclick = resetGame;
 
 // Controls
 let keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Draw human fighter
+// Draw fighter
 function drawFighter(f, color, flip=false) {
     ctx.save();
 
@@ -45,17 +63,18 @@ function drawFighter(f, color, flip=false) {
     ctx.fillStyle = color;
     ctx.fillRect(f.x + 10, f.y - 25, 20, 40);
 
-    // Arms
+    // Arms (animate when attacking)
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
+
     ctx.beginPath();
     ctx.moveTo(f.x + 10, f.y - 10);
-    ctx.lineTo(f.x - 10, f.y + (f.attacking ? -20 : 10));
+    ctx.lineTo(f.x - (f.attacking ? 30 : 10), f.y + (f.attacking ? -20 : 10));
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(f.x + 30, f.y - 10);
-    ctx.lineTo(f.x + (f.attacking ? 50 : 40), f.y + (f.attacking ? -20 : 10));
+    ctx.lineTo(f.x + (f.attacking ? 60 : 40), f.y + (f.attacking ? -20 : 10));
     ctx.stroke();
 
     // Legs
@@ -72,21 +91,36 @@ function drawFighter(f, color, flip=false) {
     ctx.restore();
 }
 
-// Movement
+// Attack system
+function attack(a, b, damage) {
+    if (Math.abs(a.x - b.x) < 70) {
+        b.hp -= damage;
+    }
+}
+
+// Player movement + attacks
 function movePlayer() {
     if (keys["a"]) player.x -= 5;
     if (keys["d"]) player.x += 5;
 
-    if (keys["j"] && !player.attacking) {
+    // Punch (J)
+    if (keys["j"] && !player.cooldown) {
         player.attacking = true;
+        player.cooldown = true;
         attack(player, enemy, 10);
-        setTimeout(()=>player.attacking=false,200);
+
+        setTimeout(() => player.attacking = false, 150);
+        setTimeout(() => player.cooldown = false, 300);
     }
 
-    if (keys["k"] && !player.attacking) {
+    // Kick (K)
+    if (keys["k"] && !player.cooldown) {
         player.attacking = true;
+        player.cooldown = true;
         attack(player, enemy, 15);
-        setTimeout(()=>player.attacking=false,300);
+
+        setTimeout(() => player.attacking = false, 200);
+        setTimeout(() => player.cooldown = false, 400);
     }
 }
 
@@ -95,17 +129,13 @@ function moveEnemy() {
     if (enemy.x > player.x) enemy.x -= 2;
     if (enemy.x < player.x) enemy.x += 2;
 
-    if (Math.random() < 0.02 && !enemy.attacking) {
+    if (Math.random() < 0.02 && !enemy.cooldown) {
         enemy.attacking = true;
+        enemy.cooldown = true;
         attack(enemy, player, 10);
-        setTimeout(()=>enemy.attacking=false,300);
-    }
-}
 
-// Attack
-function attack(a, b, dmg) {
-    if (Math.abs(a.x - b.x) < 60) {
-        b.hp -= dmg;
+        setTimeout(() => enemy.attacking = false, 200);
+        setTimeout(() => enemy.cooldown = false, 500);
     }
 }
 
@@ -116,9 +146,12 @@ function drawUI() {
     ctx.fillRect(550, 50, enemy.hp * 2, 20);
 
     ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
     ctx.fillText("PLAYER", 50, 45);
     ctx.fillText("ENEMY", 550, 45);
+
+    // Controls
+    ctx.fillText("A/D = Move", 350, 450);
+    ctx.fillText("J = Punch | K = Kick", 320, 470);
 }
 
 // Game loop
