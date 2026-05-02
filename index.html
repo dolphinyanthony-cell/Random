@@ -1,1 +1,145 @@
-v
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fighting Game</title>
+<style>
+body { margin:0; background:black; }
+canvas { display:block; margin:auto; background:#222; }
+</style>
+</head>
+<body>
+
+<canvas id="game" width="900" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const sprite = new Image();
+sprite.src = "sprites.png";
+
+// --- SPRITE SETTINGS (adjust if needed) ---
+const FRAME_W = 80;
+const FRAME_H = 80;
+
+// These positions match the bottom sprite rows in your image
+const playerRowY = 500; // left fighter row (approx)
+const enemyRowY  = 500; // right fighter row (approx)
+
+// Fighters
+let player = {
+    x:150, y:300,
+    frame:0,
+    hp:100,
+    attacking:false
+};
+
+let enemy = {
+    x:600, y:300,
+    frame:0,
+    hp:100,
+    attacking:false
+};
+
+// Controls
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Movement
+function movePlayer() {
+    if (keys["a"]) player.x -= 4;
+    if (keys["d"]) player.x += 4;
+
+    if (keys["j"] && !player.attacking) {
+        player.attacking = true;
+        attack(player, enemy, 10);
+        setTimeout(()=>player.attacking=false,200);
+    }
+}
+
+// Enemy AI
+function moveEnemy() {
+    if (enemy.x > player.x) enemy.x -= 2;
+    if (enemy.x < player.x) enemy.x += 2;
+
+    if (Math.random() < 0.02 && !enemy.attacking) {
+        enemy.attacking = true;
+        attack(enemy, player, 10);
+        setTimeout(()=>enemy.attacking=false,300);
+    }
+}
+
+// Attack
+function attack(a, b, dmg) {
+    if (Math.abs(a.x - b.x) < 80) {
+        b.hp -= dmg;
+    }
+}
+
+// Draw sprite frame
+function drawSprite(x, y, frame, rowY, flip=false) {
+    ctx.save();
+
+    if (flip) {
+        ctx.scale(-1,1);
+        ctx.drawImage(
+            sprite,
+            frame * FRAME_W, rowY,
+            FRAME_W, FRAME_H,
+            -x - FRAME_W, y,
+            FRAME_W*2, FRAME_H*2
+        );
+    } else {
+        ctx.drawImage(
+            sprite,
+            frame * FRAME_W, rowY,
+            FRAME_W, FRAME_H,
+            x, y,
+            FRAME_W*2, FRAME_H*2
+        );
+    }
+
+    ctx.restore();
+}
+
+// Loop
+function loop() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    movePlayer();
+    moveEnemy();
+
+    // Animate
+    player.frame = (player.frame + 0.2) % 6;
+    enemy.frame = (enemy.frame + 0.2) % 6;
+
+    drawSprite(player.x, player.y, Math.floor(player.frame), playerRowY, false);
+    drawSprite(enemy.x, enemy.y, Math.floor(enemy.frame), enemyRowY, true);
+
+    // Health
+    ctx.fillStyle="red";
+    ctx.fillRect(50,50,player.hp*2,20);
+    ctx.fillRect(550,50,enemy.hp*2,20);
+
+    if (player.hp <= 0) {
+        ctx.fillStyle="white";
+        ctx.fillText("YOU LOSE", 400, 250);
+        return;
+    }
+
+    if (enemy.hp <= 0) {
+        ctx.fillStyle="white";
+        ctx.fillText("YOU WIN", 400, 250);
+        return;
+    }
+
+    requestAnimationFrame(loop);
+}
+
+sprite.onload = loop;
+</script>
+
+</body>
+</html>
