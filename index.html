@@ -2,19 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Kickboxing Fighter</title>
+<title>Kickboxing Fighters</title>
 <style>
-    body {
-        margin: 0;
-        background: black;
-        overflow: hidden;
-        font-family: Arial;
-    }
-    canvas {
-        display: block;
-        margin: auto;
-        background: #111;
-    }
+body { margin:0; background:black; overflow:hidden; }
+canvas { display:block; margin:auto; background:#111; }
 </style>
 </head>
 <body>
@@ -25,13 +16,19 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Player + Enemy
-let player = { x: 100, y: 300, w: 50, h: 80, hp: 100, attacking: false };
-let enemy = { x: 700, y: 300, w: 50, h: 80, hp: 100, attacking: false };
+// Load images
+const playerImg = new Image();
+playerImg.src = "fighter1.png";
+
+const enemyImg = new Image();
+enemyImg.src = "fighter2.png";
+
+// Fighters
+let player = { x:100, y:250, w:80, h:120, hp:100, attacking:false, flip:false };
+let enemy  = { x:700, y:250, w:80, h:120, hp:100, attacking:false, flip:true };
 
 // Controls
 let keys = {};
-
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
@@ -40,14 +37,12 @@ function movePlayer() {
     if (keys["a"]) player.x -= 5;
     if (keys["d"]) player.x += 5;
 
-    // Punch
     if (keys["j"] && !player.attacking) {
         player.attacking = true;
         attack(player, enemy, 10);
         setTimeout(() => player.attacking = false, 200);
     }
 
-    // Kick
     if (keys["k"] && !player.attacking) {
         player.attacking = true;
         attack(player, enemy, 15);
@@ -67,52 +62,63 @@ function moveEnemy() {
     }
 }
 
-// Attack system
-function attack(attacker, target, damage) {
+// Attack
+function attack(attacker, target, dmg) {
     if (
         attacker.x < target.x + target.w &&
         attacker.x + attacker.w > target.x
     ) {
-        target.hp -= damage;
+        target.hp -= dmg;
     }
 }
 
-// Draw fighters
-function drawFighter(f, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(f.x, f.y, f.w, f.h);
+// Draw fighter with flip + attack animation
+function drawFighter(f, img) {
+    ctx.save();
 
+    if (f.x < canvas.width / 2) f.flip = false;
+    else f.flip = true;
+
+    if (f.flip) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, -f.x - f.w, f.y, f.w, f.h);
+    } else {
+        ctx.drawImage(img, f.x, f.y, f.w, f.h);
+    }
+
+    // Attack effect
     if (f.attacking) {
         ctx.fillStyle = "yellow";
-        ctx.fillRect(f.x + f.w, f.y + 20, 20, 20);
+        ctx.fillRect(f.flip ? -f.x - 10 : f.x + f.w, f.y + 40, 20, 20);
     }
+
+    ctx.restore();
 }
 
 // Health bars
 function drawHealth() {
     ctx.fillStyle = "red";
-    ctx.fillRect(50, 50, player.hp * 2, 20);
+    ctx.fillRect(50, 40, player.hp * 2, 20);
 
-    ctx.fillRect(550, 50, enemy.hp * 2, 20);
+    ctx.fillRect(550, 40, enemy.hp * 2, 20);
 
     ctx.fillStyle = "white";
-    ctx.fillText("PLAYER", 50, 45);
-    ctx.fillText("ENEMY", 550, 45);
+    ctx.fillText("PLAYER", 50, 35);
+    ctx.fillText("ENEMY", 550, 35);
 }
 
 // Game loop
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function loop() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
     movePlayer();
     moveEnemy();
 
-    drawFighter(player, "blue");
-    drawFighter(enemy, "red");
+    drawFighter(player, playerImg);
+    drawFighter(enemy, enemyImg);
 
     drawHealth();
 
-    // End game
     if (player.hp <= 0) {
         ctx.fillStyle = "white";
         ctx.font = "40px Arial";
@@ -127,10 +133,10 @@ function gameLoop() {
         return;
     }
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
 }
 
-gameLoop();
+loop();
 </script>
 
 </body>
