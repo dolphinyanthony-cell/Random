@@ -135,46 +135,51 @@ function movePlayer() {
     }
 }
 
-// Enemy (balanced + same cooldown)
+// 🔥 HARDER ENEMY
 function moveEnemy() {
     let dist = player.x - enemy.x;
 
-    if (Math.abs(dist) > 130) {
-        enemy.x += dist > 0 ? 2 : -2;
-    } else if (Math.abs(dist) < 60) {
-        enemy.x += dist > 0 ? -1.5 : 1.5;
+    // Faster movement
+    if (Math.abs(dist) > 120) {
+        enemy.x += dist > 0 ? 2.5 : -2.5;
+    } else if (Math.abs(dist) < 65) {
+        enemy.x += dist > 0 ? -2 : 2;
     }
 
-    if (Math.random() < 0.005) {
-        enemy.x += (Math.random() < 0.5 ? -30 : 30);
+    // More dodging
+    if (Math.random() < 0.01) {
+        enemy.x += (Math.random() < 0.5 ? -35 : 35);
     }
 
-    enemy.blocking = Math.random() < 0.01;
+    // More blocking
+    enemy.blocking = Math.random() < 0.02;
 
-    if ((player.punching || player.kicking) && Math.random() < 0.15 && !enemy.cooldown) {
+    // Better counters
+    if ((player.punching || player.kicking) && Math.random() < 0.2 && !enemy.cooldown) {
         enemy.cooldown = true;
 
         setTimeout(() => {
             enemy.punching = true;
-            attack(enemy, player, 8, 70);
+            attack(enemy, player, 10, 75);
 
             setTimeout(()=>enemy.punching=false,150);
-        }, 200);
+        }, 150);
 
         setTimeout(()=>enemy.cooldown=false,500);
         return;
     }
 
-    if (!enemy.cooldown && Math.random() < 0.025) {
+    // More frequent attacks
+    if (!enemy.cooldown && Math.random() < 0.035) {
         enemy.cooldown = true;
 
-        if (Math.abs(dist) < 75) {
+        if (Math.abs(dist) < 80) {
             enemy.punching = true;
-            attack(enemy, player, 8, 70);
+            attack(enemy, player, 10, 75);
             setTimeout(()=>enemy.punching=false,150);
         } else {
             enemy.kicking = true;
-            attack(enemy, player, 14, 95);
+            attack(enemy, player, 16, 100);
             setTimeout(()=>enemy.kicking=false,200);
         }
 
